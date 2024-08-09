@@ -1,0 +1,23 @@
+before:
+  hooks:
+    - go mod tidy
+builds:
+- targets: [go_first_class]
+  mod_timestamp: '{{ .CommitTimestamp }}'
+  flags:
+    # trims path
+    - -trimpath
+  ldflags:
+    - -s -w -X main.Version={{.Version}}
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
