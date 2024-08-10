@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/jszwec/csvutil"
 	"github.com/schollz/progressbar/v3"
 	"github.com/urfave/cli"
 )
@@ -23,9 +24,10 @@ type Tag struct {
 }
 
 type PocketItem struct {
-	TimeAdded string `json:"time_added"`
-	Title     string `json:"resolved_title"`
-	URL       string `json:"resolved_url"`
+	TimeAdded string `json:"time_added" csv:"time_added"`
+	TimeRead  string `json:"time_read" csv:"time_read"`
+	Title     string `json:"resolved_title" csv:"resolved_title"`
+	URL       string `json:"resolved_url" csv:"resolved_url"`
 	// Tags      map[string]Tag `json:"tags"`
 }
 
@@ -110,12 +112,13 @@ func main() {
 		cli.StringFlag{
 			Name:  "format, f",
 			Value: "json",
-			Usage: "Output format (json,txt)",
+			Usage: "Output format (json,txt,csv)",
 		},
 	}
 
 	app.Action = func(c *cli.Context) error {
 		outputPath := c.String("output")
+		timeNow := time.Now().Format("20060102_150405")
 
 		items, err := fetchPocketItems(c.String("consumer_key"), c.String("access_token"))
 		if err != nil {
@@ -125,7 +128,7 @@ func main() {
 		// if format is txt
 		if c.String("format") == "txt" {
 			// change file extension to txt
-			outputPath = outputPath[:len(outputPath)-5] + ".txt"
+			outputPath = outputPath[:len(outputPath)-5] + "-" + timeNow + ".txt"
 			file, err := os.Create(outputPath)
 			if err != nil {
 				return err
@@ -150,7 +153,7 @@ func main() {
 			}
 
 			// change file extension to json
-			outputPath = outputPath[:len(outputPath)-5] + ".json"
+			outputPath = outputPath[:len(outputPath)-5] + "-" + timeNow + ".json"
 
 			file, err := os.Create(outputPath)
 			if err != nil {
@@ -158,6 +161,26 @@ func main() {
 			}
 			defer file.Close()
 
+			_, err = file.Write(data)
+			if err != nil {
+				return err
+			}
+		}
+
+		// if format is csv
+		if c.String("format") == "csv" {
+			// change file extension to csv
+			outputPath = outputPath[:len(outputPath)-5] + "-" + timeNow + ".csv"
+			file, err := os.Create(outputPath)
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+
+			data, err := csvutil.Marshal(items)
+			if err != nil {
+				return err
+			}
 			_, err = file.Write(data)
 			if err != nil {
 				return err
