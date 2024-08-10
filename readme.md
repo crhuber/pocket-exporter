@@ -34,10 +34,13 @@ Run the tool using the following command:
 
 Options:
 
---access_token or -t: Specify Pocket acccess token (required)
---consumer_key or -k: Specify Pocket consumer key (default: "78809-9423d8c743a58f62b23ee85c")
---output or -o: Specify the output file name (default: pocket_archive.json)
---format or -o: Specify output format. json, csv, txt (default: json)
+`--access_token or -t`: Specify Pocket acccess token (required)
+
+`--consumer_key or -k`: Specify Pocket consumer key (default: "78809-9423d8c743a58f62b23ee85c")
+
+`--output or -o`: Specify the output file name (default: pocket_archive.json)
+
+`--format or -o`: Specify output format. json, csv, txt (default: json)
 
 
 Example:
@@ -54,15 +57,22 @@ The output JSON file contains an array of Pocket items, each with the following 
   {
     "resolved_title": "Article Title",
     "resolved_url": "https://example.com/article",
-    "time_added": 1593561600
-  },
-  ...
+    "time_added": 1593561600,
+    "time_read": 1593561601
+  }
 ]
 ```
+
 The output in text format contains a pocket item on each new line, each with the following structure:
 
 ```
 2024-01-01T00:00:00+00:00	Article Title	https://example.com/article
+```
+
+The output in csv format contains a pocket item on each new line, each with the following structure:
+```
+time_added,time_read,resolved_title,resolved_url
+1723320229,172330230,Article Title,https://example.com/article
 ```
 
 ## Troubleshooting
