@@ -3,6 +3,7 @@ module github.com/crhuber/pocket-exporter
 go 1.21.0
 
 require (
+	github.com/jszwec/csvutil v1.10.0
 	github.com/schollz/progressbar/v3 v3.14.6
 	github.com/urfave/cli v1.22.15
 )

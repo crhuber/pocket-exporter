@@ -3,7 +3,7 @@ name: Build
 on:
   pull_request:
     branches:
-      - main
+      - master
 
 concurrency:
   # Grouped by ref (branch/tag name) not to cancel other jobs running for other feature branches
