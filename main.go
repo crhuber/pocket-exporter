@@ -96,7 +96,7 @@ func main() {
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "output, o",
-			Value: "pocket_archive.json",
+			Value: "pocket-export.json",
 			Usage: "Output file path",
 		},
 		cli.StringFlag{
@@ -111,18 +111,27 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:  "format, f",
-			Value: "json",
+			Value: "",
 			Usage: "Output format (json,txt,csv)",
 		},
 	}
 
 	app.Action = func(c *cli.Context) error {
 		outputPath := c.String("output")
-		timeNow := time.Now().Format("20060102_150405")
+		timeNow := time.Now().Format("20060102")
 
 		items, err := fetchPocketItems(c.String("consumer_key"), c.String("access_token"))
 		if err != nil {
 			return err
+		}
+
+		// if format is not defined
+		if c.String("format") == "" {
+			for _, item := range *items {
+				timestamp, _ := strconv.ParseInt(item.TimeAdded, 10, 64)
+				timeAdded := time.Unix(timestamp, 0).Format(time.RFC3339)
+				fmt.Printf("%s\t%s\t%s\n", timeAdded, item.Title, item.URL)
+			}
 		}
 
 		// if format is txt
@@ -143,6 +152,7 @@ func main() {
 					return err
 				}
 			}
+			fmt.Printf("Pocket archive exported to %s\n", outputPath)
 		}
 
 		// if format is json
@@ -165,6 +175,7 @@ func main() {
 			if err != nil {
 				return err
 			}
+			fmt.Printf("Pocket archive exported to %s\n", outputPath)
 		}
 
 		// if format is csv
@@ -185,9 +196,8 @@ func main() {
 			if err != nil {
 				return err
 			}
+			fmt.Printf("Pocket archive exported to %s\n", outputPath)
 		}
-
-		fmt.Printf("Pocket archive exported to %s\n", outputPath)
 		return nil
 	}
 

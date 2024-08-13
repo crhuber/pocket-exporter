@@ -1,0 +1,15 @@
+# https://taskfile.dev
+
+version: '3'
+tasks:
+  build:
+    cmds:
+      - go build -o build/pocket-exporter
+  test:
+    cmds:
+      - go clean -testcache
+      - go test -v -cover -race ./...
+
+  lint:
+    cmds:
+      - golangci-lint run ./...
