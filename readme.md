@@ -38,9 +38,9 @@ Options:
 
 `--consumer_key or -k`: Specify Pocket consumer key (default: "78809-9423d8c743a58f62b23ee85c")
 
-`--output or -o`: Specify the output file name (default: pocket_archive.json)
+`--output or -o`: Specify the output file name (default: pocket-export.json)
 
-`--format or -o`: Specify output format. json, csv, txt (default: json)
+`--format or -o`: Specify output format. json, csv, txt (default: stdout)
 
 
 Example:
