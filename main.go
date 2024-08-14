@@ -162,7 +162,7 @@ func main() {
 		// if format is txt
 		if c.String("format") == "txt" {
 			// change file extension to txt
-			outputPath = outputPath[:len(outputPath)-5] + "-" + timeNow + ".txt"
+			outputPath = outputPath[:len(outputPath)-4] + "-" + timeNow + ".txt"
 			file, err := os.Create(outputPath)
 			if err != nil {
 				return err
@@ -188,7 +188,7 @@ func main() {
 			}
 
 			// change file extension to json
-			outputPath = outputPath[:len(outputPath)-5] + "-" + timeNow + ".json"
+			outputPath = outputPath[:len(outputPath)-4] + "-" + timeNow + ".json"
 
 			file, err := os.Create(outputPath)
 			if err != nil {
@@ -206,7 +206,7 @@ func main() {
 		// if format is csv
 		if c.String("format") == "csv" {
 			// change file extension to csv
-			outputPath = outputPath[:len(outputPath)-5] + "-" + timeNow + ".csv"
+			outputPath = outputPath[:len(outputPath)-4] + "-" + timeNow + ".csv"
 			file, err := os.Create(outputPath)
 			if err != nil {
 				return err
