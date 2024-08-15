@@ -13,7 +13,7 @@ import (
 
 	"github.com/jszwec/csvutil"
 	"github.com/schollz/progressbar/v3"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 var Version = "dev"
@@ -24,11 +24,30 @@ type Tag struct {
 }
 
 type PocketItem struct {
-	TimeAdded string `json:"time_added" csv:"time_added"`
-	TimeRead  string `json:"time_read" csv:"time_read"`
-	Title     string `json:"resolved_title" csv:"resolved_title"`
-	URL       string `json:"resolved_url" csv:"resolved_url"`
-	// Tags      map[string]Tag `json:"tags"`
+	ItemID                 string         `json:"item_id" csv:"item_id"`
+	ResolvedID             string         `json:"resolved_id" csv:"resolved_id"`
+	GivenURL               string         `json:"given_url" csv:"given_url"`
+	GivenTitle             string         `json:"given_title" csv:"given_title"`
+	Favorite               string         `json:"favorite" csv:"favorite"`
+	Status                 string         `json:"status" csv:"status"`
+	TimeAdded              string         `json:"time_added" csv:"time_added"`
+	TimeUpdated            string         `json:"time_updated" csv:"time_updated"`
+	TimeRead               string         `json:"time_read" csv:"time_read"`
+	TimeFavorited          string         `json:"time_favorited" csv:"time_favorited"`
+	SortID                 int            `json:"sort_id" csv:"sort_id"`
+	ResolvedTitle          string         `json:"resolved_title" csv:"resolved_title"`
+	ResolvedURL            string         `json:"resolved_url" csv:"resolved_url"`
+	Excerpt                string         `json:"-" csv:"-"`
+	IsArticle              string         `json:"is_article" csv:"is_article"`
+	IsIndex                string         `json:"is_index" csv:"is_index"`
+	HasVideo               string         `json:"has_video" csv:"has_video"`
+	HasImage               string         `json:"has_image" csv:"has_image"`
+	WordCount              string         `json:"word_count" csv:"word_count"`
+	Lang                   string         `json:"lang" csv:"lang"`
+	TimeToRead             int            `json:"time_to_read" csv:"time_to_read"`
+	TopImageURL            string         `json:"top_image_url" csv:"top_image_url"`
+	ListenDurationEstimate int            `json:"listen_duration_estimate" csv:"listen_duration_estimate"`
+	Tags                   map[string]Tag `json:"tags" csv:"-"`
 }
 
 type PocketResponse struct {
@@ -94,25 +113,31 @@ func main() {
 	app.Version = Version
 
 	app.Flags = []cli.Flag{
-		cli.StringFlag{
-			Name:  "output, o",
-			Value: "pocket-export.json",
-			Usage: "Output file path",
+		&cli.StringFlag{
+			Name:    "output",
+			Aliases: []string{"o"},
+			Value:   "pocket-export.json",
+			Usage:   "Output file path",
 		},
-		cli.StringFlag{
-			Name:     "access_token, t",
+		&cli.StringFlag{
+			Name:     "access_token",
+			Aliases:  []string{"t"},
 			Usage:    "Pocket API access token",
 			Required: true,
+			EnvVars:  []string{"POCKET_ACCESS_TOKEN"},
 		},
-		cli.StringFlag{
-			Name:  "consumer_key, k",
-			Value: "78809-9423d8c743a58f62b23ee85c",
-			Usage: "Pocket API consumer key",
+		&cli.StringFlag{
+			Name:    "consumer_key",
+			Aliases: []string{"k"},
+			Value:   "78809-9423d8c743a58f62b23ee85c",
+			Usage:   "Pocket API consumer key",
+			EnvVars: []string{"POCKET_CONSUMER_KEY"},
 		},
-		cli.StringFlag{
-			Name:  "format, f",
-			Value: "",
-			Usage: "Output format (json,txt,csv)",
+		&cli.StringFlag{
+			Name:    "format",
+			Aliases: []string{"f"},
+			Value:   "",
+			Usage:   "Output format (json,txt,csv)",
 		},
 	}
 
@@ -130,14 +155,14 @@ func main() {
 			for _, item := range *items {
 				timestamp, _ := strconv.ParseInt(item.TimeAdded, 10, 64)
 				timeAdded := time.Unix(timestamp, 0).Format(time.RFC3339)
-				fmt.Printf("%s\t%s\t%s\n", timeAdded, item.Title, item.URL)
+				fmt.Printf("%s\t%s\t%s\n", timeAdded, item.ResolvedTitle, item.ResolvedURL)
 			}
 		}
 
 		// if format is txt
 		if c.String("format") == "txt" {
 			// change file extension to txt
-			outputPath = outputPath[:len(outputPath)-5] + "-" + timeNow + ".txt"
+			outputPath = outputPath[:len(outputPath)-4] + "-" + timeNow + ".txt"
 			file, err := os.Create(outputPath)
 			if err != nil {
 				return err
@@ -147,7 +172,7 @@ func main() {
 			for _, item := range *items {
 				timestamp, _ := strconv.ParseInt(item.TimeAdded, 10, 64)
 				timeAdded := time.Unix(timestamp, 0).Format(time.RFC3339)
-				_, err = fmt.Fprintf(file, "%s\t%s\t%s\n", timeAdded, item.Title, item.URL)
+				_, err = fmt.Fprintf(file, "%s\t%s\t%s\n", timeAdded, item.ResolvedTitle, item.ResolvedURL)
 				if err != nil {
 					return err
 				}
@@ -163,7 +188,7 @@ func main() {
 			}
 
 			// change file extension to json
-			outputPath = outputPath[:len(outputPath)-5] + "-" + timeNow + ".json"
+			outputPath = outputPath[:len(outputPath)-4] + "-" + timeNow + ".json"
 
 			file, err := os.Create(outputPath)
 			if err != nil {
@@ -181,7 +206,7 @@ func main() {
 		// if format is csv
 		if c.String("format") == "csv" {
 			// change file extension to csv
-			outputPath = outputPath[:len(outputPath)-5] + "-" + timeNow + ".csv"
+			outputPath = outputPath[:len(outputPath)-4] + "-" + timeNow + ".csv"
 			file, err := os.Create(outputPath)
 			if err != nil {
 				return err
