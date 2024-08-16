@@ -54,13 +54,13 @@ type PocketResponse struct {
 	List map[string]PocketItem `json:"list"`
 }
 
-func fetchPocketItems(consumerKey, accessToken string) (*[]PocketItem, error) {
+func fetchPocketItems(consumerKey, accessToken, state string) (*[]PocketItem, error) {
 	// Construct the API request
 	apiURL := "https://getpocket.com/v3/get"
 	values := url.Values{
 		"consumer_key": {consumerKey},
 		"access_token": {accessToken},
-		"state":        {"all"},
+		"state":        {state},
 		"sort":         {"newest"},
 		"detailType":   {"complete"},
 	}
@@ -114,10 +114,10 @@ func main() {
 
 	app.Flags = []cli.Flag{
 		&cli.StringFlag{
-			Name:    "output",
-			Aliases: []string{"o"},
+			Name:    "file",
+			Aliases: []string{"f"},
 			Value:   "pocket-export.json",
-			Usage:   "Output file path",
+			Usage:   "file name to export",
 		},
 		&cli.StringFlag{
 			Name:     "access_token",
@@ -134,10 +134,16 @@ func main() {
 			EnvVars: []string{"POCKET_CONSUMER_KEY"},
 		},
 		&cli.StringFlag{
-			Name:    "format",
-			Aliases: []string{"f"},
+			Name:    "output",
+			Aliases: []string{"o"},
 			Value:   "",
 			Usage:   "Output format (json,txt,csv)",
+		},
+		&cli.StringFlag{
+			Name:    "state",
+			Aliases: []string{"s"},
+			Value:   "all",
+			Usage:   "Return only these (all,archive,unread)",
 		},
 	}
 
@@ -145,7 +151,7 @@ func main() {
 		outputPath := c.String("output")
 		timeNow := time.Now().Format("20060102")
 
-		items, err := fetchPocketItems(c.String("consumer_key"), c.String("access_token"))
+		items, err := fetchPocketItems(c.String("consumer_key"), c.String("access_token"), c.String("state"))
 		if err != nil {
 			return err
 		}

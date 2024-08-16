@@ -11,6 +11,8 @@ Before you can use pocket-exporter, you need to:
 By default it uses `78809-9423d8c743a58f62b23ee85c` as the consumer key.
 This seems to be the hardcoded key Pocket uses for their web app. It’s public and shared between all users, so there is no problem with sharing it here.
 
+To get access token
+
 ## Installation
 
 ### Option 1: Download pre-built binary (recommended)
@@ -30,22 +32,21 @@ This seems to be the hardcoded key Pocket uses for their web app. It’s public 
 ## Usage
 Run the tool using the following command:
 
-`./pocket-exporter [--output filename.json]`
+`./pocket-exporter [--file filename.json]`
 
 Options:
 
-`--access_token or -t`: Specify Pocket acccess token (required)
-
-`--consumer_key or -k`: Specify Pocket consumer key (default: "78809-9423d8c743a58f62b23ee85c")
-
-`--output or -o`: Specify the output file name (default: pocket-export.json)
-
-`--format or -o`: Specify output format. json, csv, txt (default: stdout)
-
+```
+   --file value, -f value          file name to export (default: "pocket-export.json")
+   --access_token value, -t value  Pocket API access token [$POCKET_ACCESS_TOKEN]
+   --consumer_key value, -k value  Pocket API consumer key (default: "78809-9423d8c743a58f62b23ee85c") [$POCKET_CONSUMER_KEY]
+   --output value, -o value        Output format (json,txt,csv)
+   --state value, -s value         Return only these (all,archive,unread) (default: "all")
+```
 
 Example:
 
-`./pocket-exporter --output my_pocket_items.json`
+`./pocket-exporter --file my_pocket_items.json`
 
 This will create a file named my_pocket_items.json in the current directory, containing your Pocket items sorted by the time they were added (newest first).
 
