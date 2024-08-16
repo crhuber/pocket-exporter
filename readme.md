@@ -11,7 +11,6 @@ Before you can use pocket-exporter, you need to:
 By default it uses `78809-9423d8c743a58f62b23ee85c` as the consumer key.
 This seems to be the hardcoded key Pocket uses for their web app. It’s public and shared between all users, so there is no problem with sharing it here.
 
-To get access token
 
 ## Installation
 
