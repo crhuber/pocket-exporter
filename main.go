@@ -50,12 +50,13 @@ type PocketItem struct {
 }
 
 type PocketResponse struct {
-	List map[string]PocketItem `json:"list"`
+	Total string                `json:"total"`
+	List  map[string]PocketItem `json:"list"`
 }
 
 func fetchPocketItems(consumerKey, accessToken string) (*[]PocketItem, error) {
 	offset := 0
-	batchSize := 30
+	batchSize := 30 // Maximum allowed by the API
 	allItems := make([]PocketItem, 0)
 
 	for {
@@ -69,6 +70,7 @@ func fetchPocketItems(consumerKey, accessToken string) (*[]PocketItem, error) {
 			"detailType":   {"complete"},
 			"count":        {fmt.Sprint(batchSize)},
 			"offset":       {fmt.Sprint(offset)},
+			"total":        {"1"},
 		}
 
 		// Make the API request
@@ -91,11 +93,6 @@ func fetchPocketItems(consumerKey, accessToken string) (*[]PocketItem, error) {
 			return nil, err
 		}
 
-		// Check if the list is empty, which means we've reached the end
-		if len(pocketResp.List) == 0 {
-			break
-		}
-
 		// Process the current batch of items
 		batchItems := make([]PocketItem, 0, len(pocketResp.List))
 		for _, item := range pocketResp.List {
@@ -106,13 +103,21 @@ func fetchPocketItems(consumerKey, accessToken string) (*[]PocketItem, error) {
 		allItems = append(allItems, batchItems...)
 
 		// Print progress
-		fmt.Printf("Fetched %d items so far (offset: %d)\n", len(allItems), offset)
+		fmt.Printf("Fetched %d items so far (offset: %d, total: %s)\n",
+			len(allItems), offset, pocketResp.Total)
+
+		// Check if we've reached the end of the results
+		// If count + offset >= total, then we've got all items
+		total, _ := strconv.Atoi(pocketResp.Total)
+		if offset+batchSize >= total {
+			break
+		}
 
 		// Increment the offset for the next page
-		offset += len(pocketResp.List)
+		offset += batchSize
 
 		// Add a small delay to avoid hitting API rate limits
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 	}
 
 	fmt.Printf("Completed fetching all %d Pocket items\n", len(allItems))
@@ -121,6 +126,7 @@ func fetchPocketItems(consumerKey, accessToken string) (*[]PocketItem, error) {
 	sort.Slice(allItems, func(i, j int) bool {
 		return allItems[i].TimeAdded > allItems[j].TimeAdded
 	})
+
 	return &allItems, nil
 }
 
