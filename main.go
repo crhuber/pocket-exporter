@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/jszwec/csvutil"
-	"github.com/schollz/progressbar/v3"
 	"github.com/urfave/cli/v2"
 )
 
@@ -55,55 +54,74 @@ type PocketResponse struct {
 }
 
 func fetchPocketItems(consumerKey, accessToken string) (*[]PocketItem, error) {
-	// Construct the API request
-	apiURL := "https://getpocket.com/v3/get"
-	values := url.Values{
-		"consumer_key": {consumerKey},
-		"access_token": {accessToken},
-		"state":        {"all"},
-		"sort":         {"newest"},
-		"detailType":   {"complete"},
+	offset := 0
+	batchSize := 30
+	allItems := make([]PocketItem, 0)
+
+	for {
+		// Construct the API request
+		apiURL := "https://getpocket.com/v3/get"
+		values := url.Values{
+			"consumer_key": {consumerKey},
+			"access_token": {accessToken},
+			"state":        {"all"},
+			"sort":         {"newest"},
+			"detailType":   {"complete"},
+			"count":        {fmt.Sprint(batchSize)},
+			"offset":       {fmt.Sprint(offset)},
+		}
+
+		// Make the API request
+		resp, err := http.PostForm(apiURL, values)
+		if err != nil {
+			return nil, err
+		}
+
+		// Read the response body
+		body, err := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if err != nil {
+			return nil, err
+		}
+
+		// Parse the JSON response
+		var pocketResp PocketResponse
+		err = json.Unmarshal(body, &pocketResp)
+		if err != nil {
+			return nil, err
+		}
+
+		// Check if the list is empty, which means we've reached the end
+		if len(pocketResp.List) == 0 {
+			break
+		}
+
+		// Process the current batch of items
+		batchItems := make([]PocketItem, 0, len(pocketResp.List))
+		for _, item := range pocketResp.List {
+			batchItems = append(batchItems, item)
+		}
+
+		// Add the batch items to the full list
+		allItems = append(allItems, batchItems...)
+
+		// Print progress
+		fmt.Printf("Fetched %d items so far (offset: %d)\n", len(allItems), offset)
+
+		// Increment the offset for the next page
+		offset += len(pocketResp.List)
+
+		// Add a small delay to avoid hitting API rate limits
+		time.Sleep(500 * time.Millisecond)
 	}
 
-	// Make the API request
-	resp, err := http.PostForm(apiURL, values)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	// Read the response body
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	// Parse the JSON response
-	var pocketResp PocketResponse
-	err = json.Unmarshal(body, &pocketResp)
-	if err != nil {
-		return nil, err
-	}
-
-	archiveLen := len(pocketResp.List)
-	fmt.Printf("Pocket archive contains %d items\n", archiveLen)
-	bar := progressbar.Default(int64(archiveLen))
-	items := make([]PocketItem, 0, len(pocketResp.List))
-
-	// Convert the Pocket items to a slice
-	for _, item := range pocketResp.List {
-		items = append(items, item)
-		//nolint:errcheck
-		bar.Add(1)
-		time.Sleep(500000 * time.Nanosecond)
-	}
+	fmt.Printf("Completed fetching all %d Pocket items\n", len(allItems))
 
 	// Sort the items by TimeAdded in descending order (newest first)
-	sort.Slice(items, func(i, j int) bool {
-		return items[i].TimeAdded > items[j].TimeAdded
+	sort.Slice(allItems, func(i, j int) bool {
+		return allItems[i].TimeAdded > allItems[j].TimeAdded
 	})
-
-	return &items, nil
+	return &allItems, nil
 }
 
 func main() {
